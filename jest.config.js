@@ -6,14 +6,14 @@
  *
  * @see {@link https://jestjs.io/docs/configuration} Jest Config Docs
  */
-import type { Config } from 'jest';
-import nextJest from 'next/jest';
+const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
   dir: './',
 });
 
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   displayName: 'CarbonWise',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -41,4 +41,4 @@ const config: Config = {
   coverageReporters: ['text', 'lcov', 'clover'],
 };
 
-export default createJestConfig(config);
+module.exports = createJestConfig(config);
