@@ -43,6 +43,13 @@ describe('calculateTransportEmissions', () => {
     expect(calculateTransportEmissions(entries)).toBe(0);
   });
 
+  it('should treat an unknown transport mode as zero emissions', () => {
+    const entries = [
+      { mode: 'teleport' as unknown as TransportData['mode'], distanceKm: 100, frequencyPerWeek: 5 },
+    ];
+    expect(calculateTransportEmissions(entries)).toBe(0);
+  });
+
   it('should correctly calculate car emissions', () => {
     const entries: TransportData[] = [
       { mode: 'car', distanceKm: 20, frequencyPerWeek: 5 },
@@ -190,6 +197,15 @@ describe('calculateDietEmissions', () => {
   it('should return base emissions for average diet', () => {
     const data: DietData = {
       dietType: 'average',
+      localFoodPercentage: 0,
+      reducesFoodWaste: false,
+    };
+    expect(calculateDietEmissions(data)).toBe(2500);
+  });
+
+  it('should fall back to the average factor for an unknown diet type', () => {
+    const data = {
+      dietType: 'carnivore' as unknown as DietData['dietType'],
       localFoodPercentage: 0,
       reducesFoodWaste: false,
     };

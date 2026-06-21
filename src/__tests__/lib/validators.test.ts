@@ -252,6 +252,16 @@ describe('validator type and bound branches', () => {
     );
   });
 
+  it('flags a non-numeric electronics spend', () => {
+    const errors = validateShoppingData({
+      clothingSpendMonthly: 50,
+      electronicsSpendMonthly: 'lots' as unknown as number,
+      buysSecondHand: false,
+      recycles: false,
+    });
+    expect(fieldsOf(errors)).toContain('electronicsSpendMonthly');
+  });
+
   it('flags numeric clothing/electronics spend above the maximum', () => {
     const errors = validateShoppingData({
       clothingSpendMonthly: 200000,

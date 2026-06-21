@@ -68,6 +68,28 @@ describe('useLocalStorage', () => {
     expect(result.current[0]).toBe('b');
   });
 
+  it('logs an error when a value cannot be serialized', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => useLocalStorage<Record<string, unknown>>('circular', {}));
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    act(() => result.current[1](circular));
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('logs an error when removal throws', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const removeSpy = jest
+      .spyOn(window.localStorage.__proto__, 'removeItem')
+      .mockImplementation(() => {
+        throw new Error('blocked');
+      });
+    const { result } = renderHook(() => useLocalStorage('removable', 'x'));
+    act(() => result.current[2]());
+    expect(console.error).toHaveBeenCalled();
+    removeSpy.mockRestore();
+  });
+
   it('ignores storage events for unrelated keys', () => {
     const { result } = renderHook(() => useLocalStorage('mine', 'a'));
     act(() => {

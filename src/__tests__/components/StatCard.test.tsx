@@ -32,4 +32,9 @@ describe('StatCard', () => {
     render(<StatCard title="X" value={1} unit="kg" trend="down" trendPercentage={8} />);
     expect(screen.getByLabelText('Decreased by 8%')).toBeInTheDocument();
   });
+
+  it('renders a neutral trend indicator', () => {
+    render(<StatCard title="X" value={1} unit="kg" trend="neutral" trendPercentage={0} />);
+    expect(screen.getByLabelText('No change')).toBeInTheDocument();
+  });
 });

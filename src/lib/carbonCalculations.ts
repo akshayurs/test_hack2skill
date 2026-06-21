@@ -238,6 +238,54 @@ export function calculateCarbonFootprint(input: CarbonFootprintInput): CarbonBre
 }
 
 /**
+ * A category-specific insight is emitted when that category's emissions exceed
+ * its threshold. Defined declaratively so categories can be added without
+ * touching {@link generateInsights}.
+ */
+interface CategoryInsightRule {
+  readonly category: 'transport' | 'energy' | 'diet' | 'shopping';
+  readonly id: string;
+  readonly title: string;
+  readonly message: string;
+  readonly priority: Insight['priority'];
+}
+
+const CATEGORY_INSIGHT_RULES: readonly CategoryInsightRule[] = [
+  {
+    category: 'transport',
+    id: 'insight-high-transport',
+    title: 'High Transport Emissions',
+    message:
+      'Your transport emissions are significant. Consider switching to public transit, carpooling, or cycling for shorter trips. Even replacing 2 car trips per week with alternatives can save over 500 kg CO2e annually.',
+    priority: 'high',
+  },
+  {
+    category: 'energy',
+    id: 'insight-high-energy',
+    title: 'High Energy Consumption',
+    message:
+      'Your home energy use generates significant emissions. Consider improving insulation, switching to LED lighting, and exploring renewable energy options. A smart thermostat alone can reduce energy use by 10-15%.',
+    priority: 'high',
+  },
+  {
+    category: 'diet',
+    id: 'insight-high-diet',
+    title: 'Diet Has High Impact',
+    message:
+      'Your dietary choices contribute significantly to your footprint. Try incorporating more plant-based meals — even one meatless day per week can reduce diet emissions by about 15%.',
+    priority: 'medium',
+  },
+  {
+    category: 'shopping',
+    id: 'insight-high-shopping',
+    title: 'Shopping Footprint',
+    message:
+      'Your consumption habits contribute to your carbon footprint. Consider buying second-hand, choosing durable products, and repairing items instead of replacing them.',
+    priority: 'medium',
+  },
+];
+
+/**
  * Generates personalized insights based on the user's carbon footprint breakdown.
  *
  * Analyzes each emission category and provides actionable recommendations
@@ -270,52 +318,20 @@ export function generateInsights(breakdown: CarbonBreakdown): Insight[] {
     });
   }
 
-  // Transport-specific insights
-  if (breakdown.transport > INSIGHT_THRESHOLDS.transport) {
-    insights.push({
-      id: 'insight-high-transport',
-      title: 'High Transport Emissions',
-      message: 'Your transport emissions are significant. Consider switching to public transit, carpooling, or cycling for shorter trips. Even replacing 2 car trips per week with alternatives can save over 500 kg CO2e annually.',
-      category: 'transport',
-      priority: 'high',
-      potentialSavings: breakdown.transport * INSIGHT_SAVINGS_RATES.transport,
-    });
-  }
-
-  // Energy-specific insights
-  if (breakdown.energy > INSIGHT_THRESHOLDS.energy) {
-    insights.push({
-      id: 'insight-high-energy',
-      title: 'High Energy Consumption',
-      message: 'Your home energy use generates significant emissions. Consider improving insulation, switching to LED lighting, and exploring renewable energy options. A smart thermostat alone can reduce energy use by 10-15%.',
-      category: 'energy',
-      priority: 'high',
-      potentialSavings: breakdown.energy * INSIGHT_SAVINGS_RATES.energy,
-    });
-  }
-
-  // Diet-specific insights
-  if (breakdown.diet > INSIGHT_THRESHOLDS.diet) {
-    insights.push({
-      id: 'insight-high-diet',
-      title: 'Diet Has High Impact',
-      message: 'Your dietary choices contribute significantly to your footprint. Try incorporating more plant-based meals — even one meatless day per week can reduce diet emissions by about 15%.',
-      category: 'diet',
-      priority: 'medium',
-      potentialSavings: breakdown.diet * INSIGHT_SAVINGS_RATES.diet,
-    });
-  }
-
-  // Shopping insights
-  if (breakdown.shopping > INSIGHT_THRESHOLDS.shopping) {
-    insights.push({
-      id: 'insight-high-shopping',
-      title: 'Shopping Footprint',
-      message: 'Your consumption habits contribute to your carbon footprint. Consider buying second-hand, choosing durable products, and repairing items instead of replacing them.',
-      category: 'shopping',
-      priority: 'medium',
-      potentialSavings: breakdown.shopping * INSIGHT_SAVINGS_RATES.shopping,
-    });
+  // Per-category insights are driven by a declarative rule table so new
+  // categories can be added without modifying the control flow (Open/Closed).
+  for (const rule of CATEGORY_INSIGHT_RULES) {
+    const value = breakdown[rule.category];
+    if (value > INSIGHT_THRESHOLDS[rule.category]) {
+      insights.push({
+        id: rule.id,
+        title: rule.title,
+        message: rule.message,
+        category: rule.category,
+        priority: rule.priority,
+        potentialSavings: value * INSIGHT_SAVINGS_RATES[rule.category],
+      });
+    }
   }
 
   // Paris Agreement target comparison
