@@ -193,4 +193,16 @@ describe('generateSecureId', () => {
     const ids = new Set(Array.from({ length: 100 }, () => generateSecureId()));
     expect(ids.size).toBe(100);
   });
+
+  it('should fall back to timestamp + random when crypto.randomUUID is unavailable', () => {
+    const original = crypto.randomUUID;
+    // @ts-expect-error - intentionally removing the API to exercise the fallback
+    crypto.randomUUID = undefined;
+    try {
+      const id = generateSecureId();
+      expect(id).toMatch(/^[a-z0-9]+-[a-z0-9]+$/);
+    } finally {
+      crypto.randomUUID = original;
+    }
+  });
 });

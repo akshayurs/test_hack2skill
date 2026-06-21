@@ -122,9 +122,9 @@ export default function CarbonCalculator(): React.JSX.Element {
 
   // ─── Save to Log ───
   const handleSaveToLog = useCallback(() => {
-    saveToLog('Calculated from carbon calculator');
+    saveToLog('Calculated from carbon calculator', breakdown);
     setIsSaved(true);
-  }, [saveToLog]);
+  }, [saveToLog, breakdown]);
 
   return (
     <form

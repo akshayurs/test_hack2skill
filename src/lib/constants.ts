@@ -106,6 +106,70 @@ export const SECOND_HAND_REDUCTION_FACTOR = 0.7; // 70% reduction
  */
 export const RECYCLING_REDUCTION_FACTOR = 0.15; // 15% reduction
 
+/* ──────────────────── Diet Adjustment Factors ────────────────────────────── */
+
+/**
+ * Maximum diet emission reduction achievable through fully local food sourcing.
+ * Local food reduces transport-related food emissions by up to 10%.
+ */
+export const MAX_LOCAL_FOOD_REDUCTION = 0.1;
+
+/**
+ * Diet emission reduction from actively minimizing food waste (~8%).
+ */
+export const FOOD_WASTE_REDUCTION = 0.08;
+
+/* ──────────────────── Insight Generation Thresholds ──────────────────────── */
+
+/**
+ * Per-category emission thresholds (kg CO2e/year) above which a high-impact
+ * insight is generated for that category.
+ */
+export const INSIGHT_THRESHOLDS = {
+  transport: 2000,
+  energy: 3000,
+  diet: 2500,
+  shopping: 300,
+} as const;
+
+/**
+ * Estimated fraction of a category's emissions that can realistically be saved
+ * by acting on the corresponding insight.
+ */
+export const INSIGHT_SAVINGS_RATES = {
+  transport: 0.3,
+  energy: 0.25,
+  diet: 0.15,
+  shopping: 0.4,
+} as const;
+
+/* ──────────────────── Carbon Category Visualization ──────────────────────── */
+
+/**
+ * Emission categories shared across calculations and visualizations.
+ */
+export const CARBON_CATEGORIES = ['transport', 'energy', 'diet', 'shopping'] as const;
+
+/**
+ * Display colors for each emission category, used by charts and comparison bars.
+ */
+export const CATEGORY_COLORS: Readonly<Record<(typeof CARBON_CATEGORIES)[number], string>> = {
+  transport: '#3b82f6',
+  energy: '#f59e0b',
+  diet: '#10b981',
+  shopping: '#8b5cf6',
+} as const;
+
+/**
+ * Human-readable labels for each emission category.
+ */
+export const CATEGORY_LABELS: Readonly<Record<(typeof CARBON_CATEGORIES)[number], string>> = {
+  transport: 'Transport',
+  energy: 'Energy',
+  diet: 'Diet',
+  shopping: 'Shopping',
+} as const;
+
 /* ──────────────────────── Reference Values ───────────────────────────────── */
 
 /**

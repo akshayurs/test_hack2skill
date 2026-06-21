@@ -14,26 +14,7 @@
 import React, { useMemo } from 'react';
 import type { CarbonBreakdown } from '@/types';
 import { formatCarbonValue } from '@/lib/carbonCalculations';
-
-/**
- * Category colors for the donut chart segments.
- */
-const CATEGORY_COLORS: Record<string, string> = {
-  transport: '#3b82f6',
-  energy: '#f59e0b',
-  diet: '#10b981',
-  shopping: '#8b5cf6',
-};
-
-/**
- * Category labels for display.
- */
-const CATEGORY_LABELS: Record<string, string> = {
-  transport: 'Transport',
-  energy: 'Energy',
-  diet: 'Diet',
-  shopping: 'Shopping',
-};
+import { CARBON_CATEGORIES, CATEGORY_COLORS, CATEGORY_LABELS } from '@/lib/constants';
 
 interface CarbonChartProps {
   /** Carbon footprint breakdown data */
@@ -64,10 +45,9 @@ export default function CarbonChart({
   const segments = useMemo(() => {
     if (breakdown.total === 0) return [];
 
-    const categories = ['transport', 'energy', 'diet', 'shopping'] as const;
     let cumulativeOffset = 0;
 
-    return categories.map((category) => {
+    return CARBON_CATEGORIES.map((category) => {
       const value = breakdown[category];
       const percentage = (value / breakdown.total) * 100;
       const segmentLength = (percentage / 100) * circumference;

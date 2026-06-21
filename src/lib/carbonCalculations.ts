@@ -29,10 +29,24 @@ import {
   ELECTRONICS_EMISSION_FACTOR,
   SECOND_HAND_REDUCTION_FACTOR,
   RECYCLING_REDUCTION_FACTOR,
+  MAX_LOCAL_FOOD_REDUCTION,
+  FOOD_WASTE_REDUCTION,
+  INSIGHT_THRESHOLDS,
+  INSIGHT_SAVINGS_RATES,
   WEEKS_PER_YEAR,
   MONTHS_PER_YEAR,
   REFERENCE_FOOTPRINTS,
 } from './constants';
+
+/**
+ * Rounds a number to two decimal places for consistent emission reporting.
+ *
+ * @param value - The value to round
+ * @returns The value rounded to two decimals
+ */
+function roundToTwoDecimals(value: number): number {
+  return Math.round(value * 100) / 100;
+}
 
 /**
  * Calculates annual carbon emissions from transportation in kg CO2e.
@@ -136,12 +150,12 @@ export function calculateDietEmissions(dietData: DietData): number {
   let emissions = DIET_EMISSION_FACTORS[dietData.dietType] ?? DIET_EMISSION_FACTORS.average;
 
   // Local food reduces transport-related food emissions (up to 10% reduction)
-  const localFoodReduction = (dietData.localFoodPercentage / 100) * 0.1;
+  const localFoodReduction = (dietData.localFoodPercentage / 100) * MAX_LOCAL_FOOD_REDUCTION;
   emissions *= 1 - localFoodReduction;
 
   // Food waste reduction saves approximately 8% of diet emissions
   if (dietData.reducesFoodWaste) {
-    emissions *= 0.92;
+    emissions *= 1 - FOOD_WASTE_REDUCTION;
   }
 
   return emissions;
@@ -215,11 +229,11 @@ export function calculateCarbonFootprint(input: CarbonFootprintInput): CarbonBre
   const total = transport + energy + diet + shopping;
 
   return {
-    transport: Math.round(transport * 100) / 100,
-    energy: Math.round(energy * 100) / 100,
-    diet: Math.round(diet * 100) / 100,
-    shopping: Math.round(shopping * 100) / 100,
-    total: Math.round(total * 100) / 100,
+    transport: roundToTwoDecimals(transport),
+    energy: roundToTwoDecimals(energy),
+    diet: roundToTwoDecimals(diet),
+    shopping: roundToTwoDecimals(shopping),
+    total: roundToTwoDecimals(total),
   };
 }
 
@@ -257,50 +271,50 @@ export function generateInsights(breakdown: CarbonBreakdown): Insight[] {
   }
 
   // Transport-specific insights
-  if (breakdown.transport > 2000) {
+  if (breakdown.transport > INSIGHT_THRESHOLDS.transport) {
     insights.push({
       id: 'insight-high-transport',
       title: 'High Transport Emissions',
       message: 'Your transport emissions are significant. Consider switching to public transit, carpooling, or cycling for shorter trips. Even replacing 2 car trips per week with alternatives can save over 500 kg CO2e annually.',
       category: 'transport',
       priority: 'high',
-      potentialSavings: breakdown.transport * 0.3,
+      potentialSavings: breakdown.transport * INSIGHT_SAVINGS_RATES.transport,
     });
   }
 
   // Energy-specific insights
-  if (breakdown.energy > 3000) {
+  if (breakdown.energy > INSIGHT_THRESHOLDS.energy) {
     insights.push({
       id: 'insight-high-energy',
       title: 'High Energy Consumption',
       message: 'Your home energy use generates significant emissions. Consider improving insulation, switching to LED lighting, and exploring renewable energy options. A smart thermostat alone can reduce energy use by 10-15%.',
       category: 'energy',
       priority: 'high',
-      potentialSavings: breakdown.energy * 0.25,
+      potentialSavings: breakdown.energy * INSIGHT_SAVINGS_RATES.energy,
     });
   }
 
   // Diet-specific insights
-  if (breakdown.diet > 2500) {
+  if (breakdown.diet > INSIGHT_THRESHOLDS.diet) {
     insights.push({
       id: 'insight-high-diet',
       title: 'Diet Has High Impact',
       message: 'Your dietary choices contribute significantly to your footprint. Try incorporating more plant-based meals — even one meatless day per week can reduce diet emissions by about 15%.',
       category: 'diet',
       priority: 'medium',
-      potentialSavings: breakdown.diet * 0.15,
+      potentialSavings: breakdown.diet * INSIGHT_SAVINGS_RATES.diet,
     });
   }
 
   // Shopping insights
-  if (breakdown.shopping > 300) {
+  if (breakdown.shopping > INSIGHT_THRESHOLDS.shopping) {
     insights.push({
       id: 'insight-high-shopping',
       title: 'Shopping Footprint',
       message: 'Your consumption habits contribute to your carbon footprint. Consider buying second-hand, choosing durable products, and repairing items instead of replacing them.',
       category: 'shopping',
       priority: 'medium',
-      potentialSavings: breakdown.shopping * 0.4,
+      potentialSavings: breakdown.shopping * INSIGHT_SAVINGS_RATES.shopping,
     });
   }
 
@@ -317,7 +331,7 @@ export function generateInsights(breakdown: CarbonBreakdown): Insight[] {
   }
 
   // Sort by priority: high > medium > low
-  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  const priorityOrder: Record<Insight['priority'], number> = { high: 0, medium: 1, low: 2 };
   insights.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
   return insights;

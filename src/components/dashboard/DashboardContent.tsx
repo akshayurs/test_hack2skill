@@ -49,6 +49,14 @@ export default function DashboardContent(): React.JSX.Element {
 
   const maxRef = REFERENCE_FOOTPRINTS.us_average;
 
+  // Reference points the user is compared against, rendered as a list of bars.
+  const comparisons = [
+    { key: 'you', label: 'You', value: breakdown.total, color: rating.color },
+    { key: 'paris', label: 'Paris Target', value: REFERENCE_FOOTPRINTS.paris_target, color: '#10b981' },
+    { key: 'global', label: 'Global Avg', value: REFERENCE_FOOTPRINTS.global_average, color: '#3b82f6' },
+    { key: 'us', label: 'US Average', value: REFERENCE_FOOTPRINTS.us_average, color: '#ef4444' },
+  ];
+
   return (
     <div id="dashboard-content">
       {/* ─── Key Stats ─── */}
@@ -64,7 +72,7 @@ export default function DashboardContent(): React.JSX.Element {
           />
           <StatCard
             title="Rating"
-            value={rating.label as unknown as number}
+            value={rating.label}
             unit=""
             icon="📊"
             ariaLabel={`Your rating: ${rating.label}. ${rating.description}`}
@@ -101,65 +109,28 @@ export default function DashboardContent(): React.JSX.Element {
         </h2>
 
         <div className="comparison-chart" role="list" aria-label="Carbon footprint comparisons">
-          {/* Your footprint */}
-          <div className="comparison-bar" role="listitem">
-            <span className="comparison-bar__label">You</span>
-            <div className="comparison-bar__track" role="progressbar" aria-valuenow={breakdown.total} aria-valuemin={0} aria-valuemax={maxRef}>
+          {comparisons.map(({ key, label, value, color }) => (
+            <div className="comparison-bar" role="listitem" key={key}>
+              <span className="comparison-bar__label">{label}</span>
               <div
-                className="comparison-bar__fill"
-                style={{
-                  width: `${Math.min((breakdown.total / maxRef) * 100, 100)}%`,
-                  background: `linear-gradient(90deg, ${rating.color}, ${rating.color}dd)`,
-                }}
-              />
+                className="comparison-bar__track"
+                role="progressbar"
+                aria-valuenow={value}
+                aria-valuemin={0}
+                aria-valuemax={maxRef}
+                aria-label={`${label}: ${formatCarbonValue(value)} per year`}
+              >
+                <div
+                  className="comparison-bar__fill"
+                  style={{
+                    width: `${Math.min((value / maxRef) * 100, 100)}%`,
+                    background: `linear-gradient(90deg, ${color}, ${color}dd)`,
+                  }}
+                />
+              </div>
+              <span className="comparison-bar__value">{formatCarbonValue(value)}</span>
             </div>
-            <span className="comparison-bar__value">{formatCarbonValue(breakdown.total)}</span>
-          </div>
-
-          {/* Paris Target */}
-          <div className="comparison-bar" role="listitem">
-            <span className="comparison-bar__label">Paris Target</span>
-            <div className="comparison-bar__track" role="progressbar" aria-valuenow={REFERENCE_FOOTPRINTS.paris_target} aria-valuemin={0} aria-valuemax={maxRef}>
-              <div
-                className="comparison-bar__fill"
-                style={{
-                  width: `${(REFERENCE_FOOTPRINTS.paris_target / maxRef) * 100}%`,
-                  background: 'linear-gradient(90deg, #10b981, #10b981dd)',
-                }}
-              />
-            </div>
-            <span className="comparison-bar__value">{formatCarbonValue(REFERENCE_FOOTPRINTS.paris_target)}</span>
-          </div>
-
-          {/* Global Average */}
-          <div className="comparison-bar" role="listitem">
-            <span className="comparison-bar__label">Global Avg</span>
-            <div className="comparison-bar__track" role="progressbar" aria-valuenow={REFERENCE_FOOTPRINTS.global_average} aria-valuemin={0} aria-valuemax={maxRef}>
-              <div
-                className="comparison-bar__fill"
-                style={{
-                  width: `${(REFERENCE_FOOTPRINTS.global_average / maxRef) * 100}%`,
-                  background: 'linear-gradient(90deg, #3b82f6, #3b82f6dd)',
-                }}
-              />
-            </div>
-            <span className="comparison-bar__value">{formatCarbonValue(REFERENCE_FOOTPRINTS.global_average)}</span>
-          </div>
-
-          {/* US Average */}
-          <div className="comparison-bar" role="listitem">
-            <span className="comparison-bar__label">US Average</span>
-            <div className="comparison-bar__track" role="progressbar" aria-valuenow={REFERENCE_FOOTPRINTS.us_average} aria-valuemin={0} aria-valuemax={maxRef}>
-              <div
-                className="comparison-bar__fill"
-                style={{
-                  width: '100%',
-                  background: 'linear-gradient(90deg, #ef4444, #ef4444dd)',
-                }}
-              />
-            </div>
-            <span className="comparison-bar__value">{formatCarbonValue(REFERENCE_FOOTPRINTS.us_average)}</span>
-          </div>
+          ))}
         </div>
       </section>
 

@@ -215,8 +215,8 @@ export interface ChartConfig {
 export interface StatCardProps {
   /** Title of the statistic */
   readonly title: string;
-  /** Numeric value to display */
-  readonly value: number;
+  /** Value to display (numbers are locale-formatted; strings render as-is) */
+  readonly value: number | string;
   /** Unit of measurement (e.g., "kg CO2e") */
   readonly unit: string;
   /** Optional icon identifier */

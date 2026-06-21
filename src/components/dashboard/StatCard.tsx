@@ -32,12 +32,15 @@ export default function StatCard({
       ? `Decreased by ${trendPercentage}%`
       : 'No change';
 
+  const slug = title.toLowerCase().replace(/\s+/g, '-');
+  const labelId = `stat-label-${slug}`;
+
   return (
     <article
       className="card stat-card animate-fade-in"
       role="group"
       aria-label={ariaLabel || `${title}: ${value} ${unit}`}
-      id={`stat-card-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      id={`stat-card-${slug}`}
     >
       {icon && (
         <span className="stat-card__icon" aria-hidden="true">
@@ -45,13 +48,13 @@ export default function StatCard({
         </span>
       )}
 
-      <span className="stat-card__label" id={`stat-label-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <span className="stat-card__label" id={labelId}>
         {title}
       </span>
 
       <span
         className="stat-card__value"
-        aria-describedby={`stat-label-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        aria-describedby={labelId}
       >
         {typeof value === 'number' ? value.toLocaleString() : value}
         <span className="stat-card__unit"> {unit}</span>

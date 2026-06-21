@@ -203,3 +203,72 @@ describe('validateCarbonFootprintInput', () => {
     expect(result.isValid).toBe(true);
   });
 });
+
+describe('validator type and bound branches', () => {
+  const fieldsOf = (errors: { field: string }[]) => errors.map((e) => e.field);
+
+  it('rejects non-numeric and out-of-range transport values', () => {
+    const nonNumeric = validateTransportEntry({
+      mode: 'car',
+      distanceKm: '5' as unknown as number,
+      frequencyPerWeek: '3' as unknown as number,
+    });
+    expect(fieldsOf(nonNumeric)).toEqual(expect.arrayContaining(['distanceKm', 'frequencyPerWeek']));
+
+    const overMax = validateTransportEntry({ mode: 'car', distanceKm: 60000, frequencyPerWeek: 200 });
+    expect(fieldsOf(overMax)).toEqual(expect.arrayContaining(['distanceKm', 'frequencyPerWeek']));
+  });
+
+  it('rejects non-numeric and out-of-range energy values', () => {
+    const errors = validateEnergyData({
+      electricityKwh: 'x' as unknown as number,
+      naturalGasTherms: 'y' as unknown as number,
+      usesRenewable: true,
+      renewablePercentage: 150,
+    });
+    expect(fieldsOf(errors)).toEqual(
+      expect.arrayContaining(['electricityKwh', 'naturalGasTherms', 'renewablePercentage'])
+    );
+    expect(
+      validateEnergyData({ electricityKwh: 200000, naturalGasTherms: 0, usesRenewable: false, renewablePercentage: 0 })
+        .some((e) => e.field === 'electricityKwh')
+    ).toBe(true);
+  });
+
+  it('rejects an out-of-range local food percentage', () => {
+    const errors = validateDietData({ dietType: 'vegan', localFoodPercentage: 120, reducesFoodWaste: false });
+    expect(fieldsOf(errors)).toContain('localFoodPercentage');
+  });
+
+  it('rejects non-numeric and over-max shopping values', () => {
+    const errors = validateShoppingData({
+      clothingSpendMonthly: 'a' as unknown as number,
+      electronicsSpendMonthly: 200000,
+      buysSecondHand: false,
+      recycles: false,
+    });
+    expect(fieldsOf(errors)).toEqual(
+      expect.arrayContaining(['clothingSpendMonthly', 'electronicsSpendMonthly'])
+    );
+  });
+
+  it('flags numeric clothing/electronics spend above the maximum', () => {
+    const errors = validateShoppingData({
+      clothingSpendMonthly: 200000,
+      electronicsSpendMonthly: 200000,
+      buysSecondHand: false,
+      recycles: false,
+    });
+    expect(fieldsOf(errors)).toEqual(
+      expect.arrayContaining(['clothingSpendMonthly', 'electronicsSpendMonthly'])
+    );
+  });
+
+  it('flags missing required fields as required', () => {
+    expect(fieldsOf(validateTransportEntry({ mode: 'car', distanceKm: 20 }))).toContain('frequencyPerWeek');
+    const energyErrors = validateEnergyData({ usesRenewable: false, renewablePercentage: 0 });
+    expect(fieldsOf(energyErrors)).toEqual(
+      expect.arrayContaining(['electricityKwh', 'naturalGasTherms'])
+    );
+  });
+});

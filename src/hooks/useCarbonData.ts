@@ -67,8 +67,8 @@ interface UseCarbonDataReturn {
   insights: Insight[];
   /** Historical log entries */
   logEntries: CarbonLogEntry[];
-  /** Add current breakdown to log */
-  saveToLog: (notes?: string) => void;
+  /** Add a breakdown to the log. Defaults to the hook's current breakdown when none is provided. */
+  saveToLog: (notes?: string, breakdownOverride?: CarbonBreakdown) => void;
   /** Remove a log entry by ID */
   deleteLogEntry: (id: string) => void;
   /** Available carbon reduction actions */
@@ -121,15 +121,17 @@ export function useCarbonData(): UseCarbonDataReturn {
   );
 
   /**
-   * Saves the current breakdown to the log with timestamp.
-   * Enforces maximum log entry limit to prevent storage overflow.
+   * Saves a breakdown to the log with a timestamp.
+   * Callers with their own working state (e.g. the calculator) may pass an
+   * explicit breakdown; otherwise the hook's current breakdown is used.
+   * Enforces the maximum log entry limit to prevent storage overflow.
    */
   const saveToLog = useCallback(
-    (notes?: string) => {
+    (notes?: string, breakdownOverride?: CarbonBreakdown) => {
       const newEntry: CarbonLogEntry = {
         id: generateSecureId(),
         date: new Date().toISOString(),
-        breakdown: { ...breakdown },
+        breakdown: { ...(breakdownOverride ?? breakdown) },
         notes,
       };
 
